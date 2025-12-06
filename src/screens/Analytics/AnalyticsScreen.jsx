@@ -78,6 +78,23 @@ const AnalyticsScreen = () => {
     return groupLogsByHour(safeLogs);
   }, [safeLogs]);
 
+  // Calculate previous week total for trend comparison
+  const previousWeekTotal = React.useMemo(() => {
+    const grouped = groupLogsByDay(safeLogs);
+    const today = new Date();
+    let total = 0;
+    
+    // Generate days 8-14 days ago (previous week)
+    for (let i = 7; i < 14; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      const dateKey = date.toISOString().split('T')[0];
+      const dayLogs = grouped[dateKey] || [];
+      total += dayLogs.reduce((sum, log) => sum + (log.puffCount || 0), 0);
+    }
+    return total;
+  }, [safeLogs]);
+
   // Calculate summary stats
   const weeklyTotal = weeklyDataProcessed.reduce((sum, d) => sum + d.totalPuffs, 0);
   const dailyAverage = Math.round(weeklyTotal / 7);
@@ -134,7 +151,7 @@ const AnalyticsScreen = () => {
         {/* Charts */}
         <Animated.View style={{ opacity: fadeAnim }}>
           <DailyChart data={dailyData} />
-          <WeeklyTrends data={weeklyDataProcessed} />
+          <WeeklyTrends data={weeklyDataProcessed} previousWeekTotal={previousWeekTotal} />
           <UsageHeatMap data={hourlyData} />
         </Animated.View>
         

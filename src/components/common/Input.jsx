@@ -87,17 +87,27 @@ const Input = ({
         />
         
         {rightIcon && (
-          <TouchableOpacity 
-            onPress={onRightIconPress} 
-            style={styles.rightIconButton}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <MaterialCommunityIcons
-              name={rightIcon}
-              size={20}
-              color={colors.neutral}
-            />
-          </TouchableOpacity>
+          onRightIconPress ? (
+            <TouchableOpacity 
+              onPress={onRightIconPress} 
+              style={styles.rightIconButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MaterialCommunityIcons
+                name={rightIcon}
+                size={20}
+                color={colors.neutral}
+              />
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.rightIconButton}>
+              <MaterialCommunityIcons
+                name={rightIcon}
+                size={20}
+                color={colors.neutral}
+              />
+            </View>
+          )
         )}
       </Animated.View>
       

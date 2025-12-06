@@ -17,7 +17,7 @@ import IntakeHistoryItem from '../../components/intake/IntakeHistoryItem';
 import QuickLogButton from '../../components/intake/QuickLogButton';
 import IntakeLoggerModal from '../../components/intake/IntakeLoggerModal';
 import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
-import { calculateTotalPuffs, isToday } from '../../utils/helpers';
+import { calculateTotalPuffs, calculateStreak, isToday, groupLogsByDay } from '../../utils/helpers';
 
 const { width } = Dimensions.get('window');
 
@@ -46,13 +46,62 @@ const DashboardScreen = () => {
   const todayPuffs = calculateTotalPuffs(todayLogs);
   const recentLogs = safeLogs.slice(0, 5);
 
-  // Weekly data
+  // Weekly data (current week)
   const weeklyLogs = safeLogs.filter(log => {
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     return new Date(log.timestamp) >= weekAgo;
   });
   const weeklyPuffs = calculateTotalPuffs(weeklyLogs);
+
+  // Previous week data (for trend calculation)
+  const previousWeekLogs = safeLogs.filter(log => {
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const logDate = new Date(log.timestamp);
+    return logDate >= twoWeeksAgo && logDate < weekAgo;
+  });
+  const previousWeekPuffs = calculateTotalPuffs(previousWeekLogs);
+
+  // Calculate week-over-week trend
+  const weeklyTrend = previousWeekPuffs > 0 
+    ? Math.round(((weeklyPuffs - previousWeekPuffs) / previousWeekPuffs) * 100)
+    : 0;
+  const trendIsPositive = weeklyTrend <= 0; // Lower puffs is positive
+
+  // Calculate streak (days with logs)
+  const currentStreak = calculateStreak(safeLogs);
+
+  // Calculate average gap between sessions (in hours)
+  const calculateAverageGap = () => {
+    if (safeLogs.length < 2) return null;
+    const sortedLogs = [...safeLogs].sort((a, b) => 
+      new Date(a.timestamp) - new Date(b.timestamp)
+    );
+    let totalGap = 0;
+    for (let i = 1; i < sortedLogs.length; i++) {
+      const gap = new Date(sortedLogs[i].timestamp) - new Date(sortedLogs[i - 1].timestamp);
+      totalGap += gap;
+    }
+    const avgGapMs = totalGap / (sortedLogs.length - 1);
+    const avgGapHours = avgGapMs / (1000 * 60 * 60);
+    return avgGapHours;
+  };
+  const avgGap = calculateAverageGap();
+  const formatAvgGap = (hours) => {
+    if (hours === null) return '--';
+    if (hours < 1) return `${Math.round(hours * 60)}m`;
+    return `${hours.toFixed(1)}h`;
+  };
+
+  // Estimate money saved (assuming $0.50 per puff avoided, and baseline of 20 puffs/day)
+  const daysTracked = Object.keys(groupLogsByDay(safeLogs)).length || 1;
+  const baselineDailyPuffs = 20;
+  const actualDailyAvg = safeLogs.length > 0 ? weeklyPuffs / Math.min(daysTracked, 7) : 0;
+  const puffsAvoided = Math.max(0, (baselineDailyPuffs - actualDailyAvg) * daysTracked);
+  const moneySaved = (puffsAvoided * 0.5).toFixed(0);
 
   // Calculate daily goal progress
   const dailyGoal = 10;
@@ -171,11 +220,17 @@ const DashboardScreen = () => {
                 </View>
 
                 <View style={styles.statItem}>
-                  <View style={[styles.statIcon, { backgroundColor: colors.success + '15' }]}>
-                    <MaterialCommunityIcons name="trending-down" size={18} color={colors.success} />
+                  <View style={[styles.statIcon, { backgroundColor: trendIsPositive ? colors.success + '15' : colors.warning + '15' }]}>
+                    <MaterialCommunityIcons 
+                      name={trendIsPositive ? "trending-down" : "trending-up"} 
+                      size={18} 
+                      color={trendIsPositive ? colors.success : colors.warning} 
+                    />
                   </View>
                   <View>
-                    <Text style={styles.statValue}>-12%</Text>
+                    <Text style={styles.statValue}>
+                      {weeklyTrend === 0 ? '0%' : `${weeklyTrend > 0 ? '+' : ''}${weeklyTrend}%`}
+                    </Text>
                     <Text style={styles.statLabel}>vs Last Week</Text>
                   </View>
                 </View>
@@ -188,19 +243,19 @@ const DashboardScreen = () => {
         <View style={styles.quickStatsRow}>
           <Card style={styles.quickStatCard} variant="highlight">
             <MaterialCommunityIcons name="fire" size={24} color={colors.warning} />
-            <Text style={styles.quickStatValue}>5</Text>
+            <Text style={styles.quickStatValue}>{currentStreak}</Text>
             <Text style={styles.quickStatLabel}>Day Streak</Text>
           </Card>
           
           <Card style={styles.quickStatCard} variant="highlight">
             <MaterialCommunityIcons name="leaf" size={24} color={colors.success} />
-            <Text style={styles.quickStatValue}>$42</Text>
+            <Text style={styles.quickStatValue}>${moneySaved}</Text>
             <Text style={styles.quickStatLabel}>Saved</Text>
           </Card>
           
           <Card style={styles.quickStatCard} variant="highlight">
             <MaterialCommunityIcons name="clock-outline" size={24} color={colors.primary} />
-            <Text style={styles.quickStatValue}>3.2h</Text>
+            <Text style={styles.quickStatValue}>{formatAvgGap(avgGap)}</Text>
             <Text style={styles.quickStatLabel}>Avg Gap</Text>
           </Card>
         </View>

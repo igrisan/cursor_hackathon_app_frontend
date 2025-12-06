@@ -6,7 +6,7 @@ import { colors, spacing, typography, borderRadius } from '../../utils/theme';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-const WeeklyTrends = ({ data }) => {
+const WeeklyTrends = ({ data, previousWeekTotal = 0 }) => {
   if (!data || !data.length) {
     return (
       <Card style={styles.container} variant="outlined">
@@ -19,7 +19,14 @@ const WeeklyTrends = ({ data }) => {
   }
 
   const maxValue = Math.max(...data.map(d => d.totalPuffs || 0), 1);
-  const average = Math.round(data.reduce((sum, d) => sum + (d.totalPuffs || 0), 0) / data.length);
+  const currentWeekTotal = data.reduce((sum, d) => sum + (d.totalPuffs || 0), 0);
+  const average = Math.round(currentWeekTotal / data.length);
+
+  // Calculate trend percentage
+  const trendPercentage = previousWeekTotal > 0 
+    ? Math.round(((currentWeekTotal - previousWeekTotal) / previousWeekTotal) * 100)
+    : 0;
+  const trendIsPositive = trendPercentage <= 0; // Lower puffs is positive (good)
 
   return (
     <Card style={styles.container} variant="elevated">
@@ -28,9 +35,15 @@ const WeeklyTrends = ({ data }) => {
           <Text style={styles.title}>Weekly Comparison</Text>
           <Text style={styles.subtitle}>Average: {average} puffs/day</Text>
         </View>
-        <View style={[styles.trendBadge, { backgroundColor: colors.success + '15' }]}>
-          <MaterialCommunityIcons name="trending-down" size={14} color={colors.success} />
-          <Text style={[styles.trendText, { color: colors.success }]}>-12%</Text>
+        <View style={[styles.trendBadge, { backgroundColor: trendIsPositive ? colors.success + '15' : colors.warning + '15' }]}>
+          <MaterialCommunityIcons 
+            name={trendIsPositive ? "trending-down" : "trending-up"} 
+            size={14} 
+            color={trendIsPositive ? colors.success : colors.warning} 
+          />
+          <Text style={[styles.trendText, { color: trendIsPositive ? colors.success : colors.warning }]}>
+            {trendPercentage === 0 ? '0%' : `${trendPercentage > 0 ? '+' : ''}${trendPercentage}%`}
+          </Text>
         </View>
       </View>
 
