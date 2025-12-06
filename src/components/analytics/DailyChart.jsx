@@ -181,10 +181,9 @@ const styles = StyleSheet.create({
   barValue: {
     fontSize: 10,
     fontWeight: '600',
-    color: colors.text.inverse,
+    color: colors.primary,
     position: 'absolute',
     top: -18,
-    color: colors.primary,
   },
   barLabel: {
     fontSize: typography.small.fontSize,

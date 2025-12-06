@@ -57,15 +57,19 @@ const AnalyticsScreen = () => {
 
   const weeklyDataProcessed = React.useMemo(() => {
     const grouped = groupLogsByDay(safeLogs);
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    return days.map((day, index) => {
-      const date = new Date();
-      date.setDate(date.getDate() - (6 - index));
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    
+    // Generate last 7 days with correct day labels
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (6 - index));
       const dateKey = date.toISOString().split('T')[0];
       const dayLogs = grouped[dateKey] || [];
       return {
-        day,
+        day: dayNames[date.getDay()],
         totalPuffs: dayLogs.reduce((sum, log) => sum + (log.puffCount || 0), 0),
+        isToday: index === 6, // Last item is always today
       };
     });
   }, [safeLogs]);

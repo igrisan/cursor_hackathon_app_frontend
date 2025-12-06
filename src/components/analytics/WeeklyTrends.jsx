@@ -20,7 +20,6 @@ const WeeklyTrends = ({ data }) => {
 
   const maxValue = Math.max(...data.map(d => d.totalPuffs || 0), 1);
   const average = Math.round(data.reduce((sum, d) => sum + (d.totalPuffs || 0), 0) / data.length);
-  const today = new Date().getDay();
 
   return (
     <Card style={styles.container} variant="elevated">
@@ -39,7 +38,7 @@ const WeeklyTrends = ({ data }) => {
       <View style={styles.chartContainer}>
         {data.map((item, index) => {
           const width = ((item.totalPuffs || 0) / maxValue) * 100;
-          const isToday = index === today;
+          const isToday = item.isToday || false; // Use isToday flag from data
           const isAboveAverage = (item.totalPuffs || 0) > average;
           
           return (
