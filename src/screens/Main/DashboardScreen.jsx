@@ -97,10 +97,12 @@ const DashboardScreen = () => {
   };
 
   // Estimate money saved (assuming $0.50 per puff avoided, and baseline of 20 puffs/day)
-  const daysTracked = Object.keys(groupLogsByDay(safeLogs)).length || 1;
+  // Use consistent time period: last 7 days (or fewer if user has less history)
+  const daysTracked = Object.keys(groupLogsByDay(safeLogs)).length || 0;
+  const daysInPeriod = Math.min(daysTracked, 7); // Cap at 7 days for weekly calculation
   const baselineDailyPuffs = 20;
-  const actualDailyAvg = safeLogs.length > 0 ? weeklyPuffs / Math.min(daysTracked, 7) : 0;
-  const puffsAvoided = Math.max(0, (baselineDailyPuffs - actualDailyAvg) * daysTracked);
+  const actualDailyAvg = daysInPeriod > 0 ? weeklyPuffs / daysInPeriod : 0;
+  const puffsAvoided = Math.max(0, (baselineDailyPuffs - actualDailyAvg) * daysInPeriod);
   const moneySaved = (puffsAvoided * 0.5).toFixed(0);
 
   // Calculate daily goal progress

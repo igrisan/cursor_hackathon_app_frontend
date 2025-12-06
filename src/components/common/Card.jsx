@@ -54,13 +54,32 @@ const Card = ({
     }
   };
 
+  const getBackgroundColor = () => {
+    switch (variant) {
+      case 'glass':
+        return 'rgba(255, 255, 255, 0.9)';
+      case 'highlight':
+        return colors.primary + '05';
+      default:
+        return colors.surface;
+    }
+  };
+
   const cardStyle = [
     styles.card,
     {
       padding: getPadding(),
-      backgroundColor: variant === 'glass' ? 'rgba(255, 255, 255, 0.9)' : colors.surface,
+      backgroundColor: getBackgroundColor(),
     },
     getVariantStyles(),
+    style,
+  ];
+
+  const gradientCardStyle = [
+    styles.card,
+    { backgroundColor: getBackgroundColor() },
+    getVariantStyles(),
+    { padding: 0 },
     style,
   ];
 
@@ -80,7 +99,7 @@ const Card = ({
   if (onPress) {
     return (
       <TouchableOpacity
-        style={gradient ? [styles.card, getVariantStyles(), { padding: 0 }, style] : cardStyle}
+        style={gradient ? gradientCardStyle : cardStyle}
         onPress={onPress}
         activeOpacity={0.7}
       >
@@ -91,7 +110,7 @@ const Card = ({
 
   if (gradient) {
     return (
-      <View style={[styles.card, getVariantStyles(), { padding: 0 }, style]}>
+      <View style={gradientCardStyle}>
         {content}
       </View>
     );
