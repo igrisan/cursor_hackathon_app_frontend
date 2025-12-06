@@ -27,7 +27,7 @@ const triggerHaptic = (type = 'impact') => {
 
 import Modal from '../common/Modal';
 import Button from '../common/Button';
-import { colors, spacing, borderRadius, typography, shadows } from '../../utils/theme';
+import { colors, spacing, borderRadius, typography, shadows, withOpacity } from '../../utils/theme';
 import { INTAKE_INTENSITY, INTAKE_CONTEXT } from '../../utils/constants';
 import { formatDateTime } from '../../utils/helpers';
 
@@ -60,8 +60,11 @@ const IntakeLoggerModal = ({ visible, onClose, onSubmit }) => {
     triggerHaptic('impact');
     setIsSubmitting(true);
     
+    // Use puffCountInput to ensure we submit what user typed, even if they didn't blur
+    const finalPuffCount = Math.min(100, Math.max(1, parseInt(puffCountInput) || 1));
+    
     const intakeData = {
-      puffCount: parseInt(puffCount),
+      puffCount: finalPuffCount,
       intensity,
       context,
       notes: notes.trim(),
@@ -146,10 +149,11 @@ const IntakeLoggerModal = ({ visible, onClose, onSubmit }) => {
                     // Validate and clamp on blur
                     const num = parseInt(puffCountInput) || 1;
                     const clamped = Math.min(100, Math.max(1, num));
+                    // Check if value changed BEFORE updating state (puffCount is guaranteed old here)
+                    const shouldAnimate = clamped !== puffCount;
                     setPuffCount(clamped);
                     setPuffCountInput(String(clamped));
-                    // Animate if the clamped value differs from current state
-                    if (clamped !== puffCount) {
+                    if (shouldAnimate) {
                       animatePuffChange();
                     }
                   }}
@@ -193,7 +197,7 @@ const IntakeLoggerModal = ({ visible, onClose, onSubmit }) => {
                     key={option.value}
                     style={[
                       styles.intensityOption,
-                      isSelected && { backgroundColor: option.color + '15', borderColor: option.color },
+                      isSelected && { backgroundColor: withOpacity(option.color, 0.15), borderColor: option.color },
                     ]}
                     onPress={() => {
                       triggerHaptic('light');
@@ -330,7 +334,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: colors.primary + '10',
+    backgroundColor: withOpacity(colors.primary, 0.1),
     justifyContent: 'center',
     alignItems: 'center',
     ...shadows.sm,
@@ -393,7 +397,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   contextOptionSelected: {
-    backgroundColor: colors.primary + '10',
+    backgroundColor: withOpacity(colors.primary, 0.1),
     borderColor: colors.primary,
   },
   contextText: {

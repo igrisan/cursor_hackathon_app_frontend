@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Card from '../common/Card';
-import { colors, spacing, typography, borderRadius } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, withOpacity } from '../../utils/theme';
 
 const InsightCard = ({ insight }) => {
   if (!insight) {
@@ -50,7 +50,7 @@ const InsightCard = ({ insight }) => {
   return (
     <Card style={styles.container} variant="outlined">
       <View style={styles.header}>
-        <View style={[styles.iconContainer, { backgroundColor: insightColor + '15' }]}>
+        <View style={[styles.iconContainer, { backgroundColor: withOpacity(insightColor, 0.15) }]}>
           <MaterialCommunityIcons
             name={getIcon()}
             size={22}
@@ -63,7 +63,7 @@ const InsightCard = ({ insight }) => {
         </View>
       </View>
       {insight.action && (
-        <TouchableOpacity style={[styles.actionContainer, { borderTopColor: insightColor + '20' }]}>
+        <TouchableOpacity style={[styles.actionContainer, { borderTopColor: withOpacity(insightColor, 0.12) }]}>
           <Text style={[styles.actionText, { color: insightColor }]}>{insight.action}</Text>
           <MaterialCommunityIcons name="arrow-right" size={16} color={insightColor} />
         </TouchableOpacity>

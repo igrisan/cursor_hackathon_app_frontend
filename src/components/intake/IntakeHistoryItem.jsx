@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Card from '../common/Card';
-import { colors, spacing, typography, borderRadius } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, withOpacity } from '../../utils/theme';
 import { INTAKE_INTENSITY, INTAKE_CONTEXT } from '../../utils/constants';
 import { formatTime, getRelativeTime } from '../../utils/helpers';
 
@@ -77,7 +77,7 @@ const IntakeHistoryItem = ({ item, onDelete, isLast = false }) => {
     <Card style={styles.card} variant="outlined">
       <View style={styles.content}>
         {/* Left - Intensity indicator */}
-        <View style={[styles.intensityIndicator, { backgroundColor: intensityColor + '15' }]}>
+        <View style={[styles.intensityIndicator, { backgroundColor: withOpacity(intensityColor, 0.15) }]}>
           <Text style={[styles.puffCount, { color: intensityColor }]}>
             {item.puffCount}
           </Text>
@@ -97,7 +97,7 @@ const IntakeHistoryItem = ({ item, onDelete, isLast = false }) => {
                 {getContextLabel(item.context)}
               </Text>
             </View>
-            <View style={[styles.intensityBadge, { backgroundColor: intensityColor + '15' }]}>
+            <View style={[styles.intensityBadge, { backgroundColor: withOpacity(intensityColor, 0.15) }]}>
               <View style={[styles.intensityDot, { backgroundColor: intensityColor }]} />
               <Text style={[styles.intensityText, { color: intensityColor }]}>
                 {getIntensityLabel(item.intensity)}

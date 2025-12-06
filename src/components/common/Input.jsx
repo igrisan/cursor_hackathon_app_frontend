@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, TextInput, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, typography, shadows } from '../../utils/theme';
+import { colors, spacing, borderRadius, typography, shadows, withOpacity } from '../../utils/theme';
 
 const Input = ({
   label,
@@ -22,20 +22,13 @@ const Input = ({
   onRightIconPress,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
-  const focusAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    Animated.timing(focusAnim, {
-      toValue: isFocused ? 1 : 0,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-  }, [isFocused]);
-
-  const borderColor = focusAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [error ? colors.danger : colors.border, error ? colors.danger : colors.primary],
-  });
+  // Get border color based on state (error takes precedence)
+  const getBorderColor = () => {
+    if (error) return colors.danger;
+    if (isFocused) return colors.primary;
+    return colors.border;
+  };
 
   return (
     <View style={[styles.container, style]}>
@@ -45,10 +38,10 @@ const Input = ({
         </Text>
       )}
       
-      <Animated.View
+      <View
         style={[
           styles.inputWrapper,
-          { borderColor },
+          { borderColor: getBorderColor() },
           isFocused && styles.inputFocused,
           error && styles.inputWrapperError,
           disabled && styles.inputWrapperDisabled,
@@ -109,7 +102,7 @@ const Input = ({
             </View>
           )
         )}
-      </Animated.View>
+      </View>
       
       {error && (
         <View style={styles.errorContainer}>
@@ -150,7 +143,7 @@ const styles = StyleSheet.create({
   },
   inputWrapperError: {
     borderColor: colors.danger,
-    backgroundColor: colors.danger + '05',
+    backgroundColor: withOpacity(colors.danger, 0.05),
   },
   inputWrapperDisabled: {
     backgroundColor: colors.surfaceHover,

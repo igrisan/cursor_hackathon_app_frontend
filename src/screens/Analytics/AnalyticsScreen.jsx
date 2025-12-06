@@ -15,7 +15,7 @@ import Card from '../../components/common/Card';
 import DailyChart from '../../components/analytics/DailyChart';
 import WeeklyTrends from '../../components/analytics/WeeklyTrends';
 import UsageHeatMap from '../../components/analytics/UsageHeatMap';
-import { colors, spacing, typography, borderRadius } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, withOpacity } from '../../utils/theme';
 import { groupLogsByDay, groupLogsByHour, getStartOfWeek, getEndOfWeek } from '../../utils/helpers';
 
 const AnalyticsScreen = () => {
@@ -124,7 +124,7 @@ const AnalyticsScreen = () => {
         {/* Summary Cards */}
         <Animated.View style={[styles.summaryContainer, { opacity: fadeAnim }]}>
           <Card style={styles.summaryCard} variant="elevated">
-            <View style={[styles.summaryIcon, { backgroundColor: colors.primary + '15' }]}>
+            <View style={[styles.summaryIcon, { backgroundColor: withOpacity(colors.primary, 0.15) }]}>
               <MaterialCommunityIcons name="sigma" size={20} color={colors.primary} />
             </View>
             <Text style={styles.summaryValue}>{weeklyTotal}</Text>
@@ -132,7 +132,7 @@ const AnalyticsScreen = () => {
           </Card>
 
           <Card style={styles.summaryCard} variant="elevated">
-            <View style={[styles.summaryIcon, { backgroundColor: colors.warning + '15' }]}>
+            <View style={[styles.summaryIcon, { backgroundColor: withOpacity(colors.warning, 0.15) }]}>
               <MaterialCommunityIcons name="chart-line-variant" size={20} color={colors.warning} />
             </View>
             <Text style={styles.summaryValue}>{dailyAverage}</Text>
@@ -140,7 +140,7 @@ const AnalyticsScreen = () => {
           </Card>
 
           <Card style={styles.summaryCard} variant="elevated">
-            <View style={[styles.summaryIcon, { backgroundColor: colors.success + '15' }]}>
+            <View style={[styles.summaryIcon, { backgroundColor: withOpacity(colors.success, 0.15) }]}>
               <MaterialCommunityIcons name="star" size={20} color={colors.success} />
             </View>
             <Text style={styles.summaryValue}>{bestDay?.day}</Text>

@@ -2,7 +2,7 @@ import React from 'react';
 import { TouchableOpacity, Text, ActivityIndicator, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, typography, shadows } from '../../utils/theme';
+import { colors, spacing, borderRadius, typography, shadows, withOpacity } from '../../utils/theme';
 
 const Button = ({
   title,
@@ -27,7 +27,7 @@ const Button = ({
         };
       case 'secondary':
         return {
-          backgroundColor: colors.primary + '10',
+          backgroundColor: withOpacity(colors.primary, 0.1),
           borderColor: 'transparent',
         };
       case 'outline':

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Card from '../common/Card';
-import { colors, spacing, typography, borderRadius } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, withOpacity } from '../../utils/theme';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -35,7 +35,7 @@ const WeeklyTrends = ({ data, previousWeekTotal = 0 }) => {
           <Text style={styles.title}>Weekly Comparison</Text>
           <Text style={styles.subtitle}>Average: {average} puffs/day</Text>
         </View>
-        <View style={[styles.trendBadge, { backgroundColor: trendIsPositive ? colors.success + '15' : colors.warning + '15' }]}>
+        <View style={[styles.trendBadge, { backgroundColor: withOpacity(trendIsPositive ? colors.success : colors.warning, 0.15) }]}>
           <MaterialCommunityIcons 
             name={trendIsPositive ? "trending-down" : "trending-up"} 
             size={14} 
@@ -75,8 +75,8 @@ const WeeklyTrends = ({ data, previousWeekTotal = 0 }) => {
                       backgroundColor: isToday 
                         ? colors.primary 
                         : isAboveAverage 
-                          ? colors.warning + '80' 
-                          : colors.success + '80',
+                          ? withOpacity(colors.warning, 0.5) 
+                          : withOpacity(colors.success, 0.5),
                     },
                   ]}
                 />

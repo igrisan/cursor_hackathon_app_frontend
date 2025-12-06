@@ -16,7 +16,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useNotificationStore } from '../../stores/notificationStore';
 import { useIntakeStore } from '../../stores/intakeStore';
 import Card from '../../components/common/Card';
-import { colors, spacing, typography, borderRadius } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, withOpacity } from '../../utils/theme';
 import { calculateStreak, calculateTotalPuffs } from '../../utils/helpers';
 
 const ProfileScreen = () => {
@@ -82,7 +82,7 @@ const ProfileScreen = () => {
         <Switch
           value={notificationsEnabled}
           onValueChange={handleToggleNotifications}
-          trackColor={{ false: colors.border, true: colors.primary + '50' }}
+          trackColor={{ false: colors.border, true: withOpacity(colors.primary, 0.5) }}
           thumbColor={notificationsEnabled ? colors.primary : colors.neutral}
         />
       ),
@@ -179,7 +179,7 @@ const ProfileScreen = () => {
                 onPress={item.onPress}
                 disabled={!item.onPress}
               >
-                <View style={[styles.menuIcon, { backgroundColor: colors.primary + '10' }]}>
+                <View style={[styles.menuIcon, { backgroundColor: withOpacity(colors.primary, 0.1) }]}>
                   <MaterialCommunityIcons name={item.icon} size={20} color={colors.primary} />
                 </View>
                 <View style={styles.menuContent}>
@@ -209,7 +209,7 @@ const ProfileScreen = () => {
                 ]}
                 onPress={item.onPress}
               >
-                <View style={[styles.menuIcon, { backgroundColor: colors.neutral + '15' }]}>
+                <View style={[styles.menuIcon, { backgroundColor: withOpacity(colors.neutral, 0.15) }]}>
                   <MaterialCommunityIcons name={item.icon} size={20} color={colors.neutral} />
                 </View>
                 <View style={styles.menuContent}>
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: colors.primary + '15',
+    backgroundColor: withOpacity(colors.primary, 0.15),
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Card from '../common/Card';
-import { colors, spacing, typography, borderRadius } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, withOpacity } from '../../utils/theme';
 import { formatDate } from '../../utils/helpers';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -58,8 +58,9 @@ const DailyChart = ({ data }) => {
           <View style={styles.bars}>
             {data.map((item, index) => {
               const height = ((item.totalPuffs || 0) / maxValue) * 140;
-              // Data is reversed (newest first), so today is at index 0
-              const isToday = index === 0;
+              // Check if item's date is today by comparing date strings
+              const todayStr = new Date().toDateString();
+              const isToday = item.date && new Date(item.date).toDateString() === todayStr;
               return (
                 <View key={index} style={styles.barWrapper}>
                   <View style={styles.barContainer}>
@@ -68,7 +69,7 @@ const DailyChart = ({ data }) => {
                         styles.bar,
                         {
                           height: Math.max(height, 4),
-                          backgroundColor: isToday ? colors.primary : colors.primary + '60',
+                          backgroundColor: isToday ? colors.primary : withOpacity(colors.primary, 0.4),
                         },
                       ]}
                     >

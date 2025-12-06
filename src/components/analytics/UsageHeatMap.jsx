@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Card from '../common/Card';
-import { colors, spacing, typography, borderRadius } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, withOpacity } from '../../utils/theme';
 
 const UsageHeatMap = ({ data }) => {
   // data should be an array of 24 values (one for each hour)
@@ -31,11 +31,11 @@ const UsageHeatMap = ({ data }) => {
       case 0:
         return colors.surface;
       case 1:
-        return colors.success + '30';
+        return withOpacity(colors.success, 0.2);
       case 2:
-        return colors.warning + '50';
+        return withOpacity(colors.warning, 0.35);
       case 3:
-        return colors.warning + '80';
+        return withOpacity(colors.warning, 0.5);
       case 4:
         return colors.danger;
       default:

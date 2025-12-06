@@ -16,7 +16,7 @@ import Card from '../../components/common/Card';
 import InsightCard from '../../components/ai/InsightCard';
 import CoachingPanel from '../../components/ai/CoachingPanel';
 import CravingAlert from '../../components/ai/CravingAlert';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, withOpacity } from '../../utils/theme';
 import { calculateStreak, calculateTotalPuffs } from '../../utils/helpers';
 
 const CoachScreen = () => {
@@ -193,7 +193,7 @@ const CoachScreen = () => {
               <View style={styles.progressHeader}>
                 <Text style={styles.progressTitle}>Today's Progress</Text>
                 <View style={[styles.progressBadge, { 
-                  backgroundColor: progress.percentage >= 50 ? colors.success + '15' : colors.warning + '15' 
+                  backgroundColor: withOpacity(progress.percentage >= 50 ? colors.success : colors.warning, 0.15) 
                 }]}>
                   <MaterialCommunityIcons 
                     name={progress.percentage >= 50 ? 'check-circle' : 'clock-outline'} 
@@ -250,7 +250,7 @@ const CoachScreen = () => {
           <View style={styles.tipsGrid}>
             {tips.map((tip, index) => (
               <Card key={index} style={styles.tipCard} variant="outlined">
-                <View style={[styles.tipIcon, { backgroundColor: tip.color + '15' }]}>
+                <View style={[styles.tipIcon, { backgroundColor: withOpacity(tip.color, 0.15) }]}>
                   <MaterialCommunityIcons name={tip.icon} size={22} color={tip.color} />
                 </View>
                 <Text style={styles.tipTitle}>{tip.title}</Text>
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: colors.accent + '15',
+    backgroundColor: withOpacity(colors.accent, 0.15),
     justifyContent: 'center',
     alignItems: 'center',
   },

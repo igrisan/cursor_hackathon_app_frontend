@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, spacing, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, borderRadius, shadows, withOpacity } from '../../utils/theme';
 
 const Card = ({ 
   children, 
@@ -45,8 +45,8 @@ const Card = ({
       case 'highlight':
         return {
           borderWidth: 1.5,
-          borderColor: colors.primary + '30',
-          backgroundColor: colors.primary + '05',
+          borderColor: withOpacity(colors.primary, 0.2),
+          backgroundColor: withOpacity(colors.primary, 0.05),
           ...shadows.sm,
         };
       default:
@@ -59,7 +59,7 @@ const Card = ({
       case 'glass':
         return 'rgba(255, 255, 255, 0.9)';
       case 'highlight':
-        return colors.primary + '05';
+        return withOpacity(colors.primary, 0.05);
       default:
         return colors.surface;
     }

@@ -16,7 +16,7 @@ import Card from '../../components/common/Card';
 import IntakeHistoryItem from '../../components/intake/IntakeHistoryItem';
 import QuickLogButton from '../../components/intake/QuickLogButton';
 import IntakeLoggerModal from '../../components/intake/IntakeLoggerModal';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, withOpacity } from '../../utils/theme';
 import { calculateTotalPuffs, calculateStreak, isToday, groupLogsByDay } from '../../utils/helpers';
 
 const { width } = Dimensions.get('window');
@@ -74,10 +74,15 @@ const DashboardScreen = () => {
   // Calculate streak (days with logs)
   const currentStreak = calculateStreak(safeLogs);
 
-  // Calculate average gap between sessions (in hours)
+  // Calculate average gap between sessions (in hours) - limited to last 30 days for meaningful insights
   const calculateAverageGap = () => {
-    if (safeLogs.length < 2) return null;
-    const sortedLogs = [...safeLogs].sort((a, b) => 
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const recentLogs = safeLogs.filter(log => new Date(log.timestamp) >= thirtyDaysAgo);
+    if (recentLogs.length < 2) return null;
+    
+    const sortedLogs = [...recentLogs].sort((a, b) => 
       new Date(a.timestamp) - new Date(b.timestamp)
     );
     let totalGap = 0;
@@ -97,12 +102,11 @@ const DashboardScreen = () => {
   };
 
   // Estimate money saved (assuming $0.50 per puff avoided, and baseline of 20 puffs/day)
-  // Use consistent time period: last 7 days (or fewer if user has less history)
-  const daysTracked = Object.keys(groupLogsByDay(safeLogs)).length || 0;
-  const daysInPeriod = Math.min(daysTracked, 7); // Cap at 7 days for weekly calculation
+  // Count only days with logs WITHIN the last 7 days (not total history)
+  const daysWithLogsInPeriod = Object.keys(groupLogsByDay(weeklyLogs)).length || 0;
   const baselineDailyPuffs = 20;
-  const actualDailyAvg = daysInPeriod > 0 ? weeklyPuffs / daysInPeriod : 0;
-  const puffsAvoided = Math.max(0, (baselineDailyPuffs - actualDailyAvg) * daysInPeriod);
+  const actualDailyAvg = daysWithLogsInPeriod > 0 ? weeklyPuffs / daysWithLogsInPeriod : 0;
+  const puffsAvoided = Math.max(0, (baselineDailyPuffs - actualDailyAvg) * daysWithLogsInPeriod);
   const moneySaved = (puffsAvoided * 0.5).toFixed(0);
 
   // Calculate daily goal progress
@@ -169,7 +173,7 @@ const DashboardScreen = () => {
                   <View 
                     style={[
                       styles.progressRing,
-                      { borderColor: isUnderGoal ? colors.success + '20' : colors.warning + '20' }
+                      { borderColor: withOpacity(isUnderGoal ? colors.success : colors.warning, 0.15) }
                     ]}
                   >
                     <View 
@@ -202,7 +206,7 @@ const DashboardScreen = () => {
               {/* Stats */}
               <View style={styles.statsInfo}>
                 <View style={styles.statItem}>
-                  <View style={[styles.statIcon, { backgroundColor: colors.primary + '15' }]}>
+                  <View style={[styles.statIcon, { backgroundColor: withOpacity(colors.primary, 0.15) }]}>
                     <MaterialCommunityIcons name="calendar-today" size={18} color={colors.primary} />
                   </View>
                   <View>
@@ -212,7 +216,7 @@ const DashboardScreen = () => {
                 </View>
 
                 <View style={styles.statItem}>
-                  <View style={[styles.statIcon, { backgroundColor: colors.accent + '15' }]}>
+                  <View style={[styles.statIcon, { backgroundColor: withOpacity(colors.accent, 0.15) }]}>
                     <MaterialCommunityIcons name="calendar-week" size={18} color={colors.accent} />
                   </View>
                   <View>
@@ -222,7 +226,7 @@ const DashboardScreen = () => {
                 </View>
 
                 <View style={styles.statItem}>
-                  <View style={[styles.statIcon, { backgroundColor: trendIsPositive ? colors.success + '15' : colors.warning + '15' }]}>
+                  <View style={[styles.statIcon, { backgroundColor: withOpacity(trendIsPositive ? colors.success : colors.warning, 0.15) }]}>
                     <MaterialCommunityIcons 
                       name={trendIsPositive ? "trending-down" : "trending-up"} 
                       size={18} 
@@ -344,7 +348,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.primary + '15',
+    backgroundColor: withOpacity(colors.primary, 0.15),
     justifyContent: 'center',
     alignItems: 'center',
   },

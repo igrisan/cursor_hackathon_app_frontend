@@ -18,14 +18,15 @@ const CustomModal = ({
   children,
   title,
   showCloseButton = true,
-  animationType = 'slide',
   transparent = true,
 }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(100)).current;
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     if (visible) {
+      // Opening animation
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -39,17 +40,29 @@ const CustomModal = ({
           useNativeDriver: true,
         }),
       ]).start();
-    } else {
-      fadeAnim.setValue(0);
-      slideAnim.setValue(100);
+      isFirstRender.current = false;
+    } else if (!isFirstRender.current) {
+      // Closing animation - animate out smoothly before resetting
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 100,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
     }
   }, [visible]);
 
   return (
     <Modal
       visible={visible}
-      animationType="fade"
-      transparent={true}
+      animationType="none"
+      transparent={transparent}
       onRequestClose={onClose}
     >
       <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>

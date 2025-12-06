@@ -16,7 +16,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../../stores/authStore';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, withOpacity } from '../../utils/theme';
 import { validateEmail } from '../../utils/helpers';
 
 const { height } = Dimensions.get('window');
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.md,
     padding: spacing.md,
-    backgroundColor: colors.danger + '10',
+    backgroundColor: withOpacity(colors.danger, 0.1),
     borderRadius: borderRadius.md,
     gap: spacing.sm,
   },

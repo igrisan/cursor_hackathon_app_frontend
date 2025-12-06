@@ -1,5 +1,16 @@
 import { Platform } from 'react-native';
 
+/**
+ * Helper function to add opacity to a hex color
+ * @param {string} hexColor - 6-digit hex color (e.g., '#6366F1')
+ * @param {number} opacity - Opacity value from 0 to 1 (e.g., 0.15 for 15%)
+ * @returns {string} 8-digit hex color with alpha channel
+ */
+export const withOpacity = (hexColor, opacity) => {
+  const alpha = Math.round(opacity * 255).toString(16).padStart(2, '0').toUpperCase();
+  return `${hexColor}${alpha}`;
+};
+
 // Modern, warm color palette for a wellness/health app
 export const colors = {
   // Primary gradient colors

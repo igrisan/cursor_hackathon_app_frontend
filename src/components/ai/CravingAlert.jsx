@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Card from '../common/Card';
 import Button from '../common/Button';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, withOpacity } from '../../utils/theme';
 
 const CravingAlert = ({ prediction, strategies, onResist, onDismiss }) => {
   if (!prediction) {
@@ -68,8 +68,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     padding: spacing.lg,
     borderWidth: 1.5,
-    borderColor: colors.warning + '30',
-    backgroundColor: colors.warning + '05',
+    borderColor: withOpacity(colors.warning, 0.2),
+    backgroundColor: withOpacity(colors.warning, 0.05),
   },
   headerRow: {
     flexDirection: 'row',
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   alertBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.warning + '15',
+    backgroundColor: withOpacity(colors.warning, 0.15),
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.round,
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: colors.success + '15',
+    backgroundColor: withOpacity(colors.success, 0.15),
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.sm,
