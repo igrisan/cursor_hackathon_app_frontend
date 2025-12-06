@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Animated,
+  Dimensions,
+  TouchableOpacity,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../../stores/authStore';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
-import { colors, spacing, typography } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
 import { validateEmail } from '../../utils/helpers';
+
+const { height } = Dimensions.get('window');
 
 const RegisterScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -22,8 +29,37 @@ const RegisterScreen = ({ navigation }) => {
     confirmPassword: '',
   });
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const { register, isLoading, error } = useAuthStore();
+
+  // Animations
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const logoScale = useRef(new Animated.Value(0.5)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+      Animated.spring(logoScale, {
+        toValue: 1,
+        tension: 50,
+        friction: 6,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const validate = () => {
     const newErrors = {};
@@ -64,85 +100,127 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#6366F1', '#8B5CF6', '#A855F7']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientBackground}
+      />
+      
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Start your smoke-free journey today</Text>
-          </View>
-
-          <View style={styles.form}>
-            <Input
-              label="Full Name"
-              value={formData.name}
-              onChangeText={(text) => setFormData({ ...formData, name: text })}
-              placeholder="Enter your full name"
-              autoCapitalize="words"
-              error={errors.name}
-            />
-
-            <Input
-              label="Email"
-              value={formData.email}
-              onChangeText={(text) => setFormData({ ...formData, email: text })}
-              placeholder="Enter your email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              error={errors.email}
-            />
-
-            <Input
-              label="Password"
-              value={formData.password}
-              onChangeText={(text) => setFormData({ ...formData, password: text })}
-              placeholder="Create a password"
-              secureTextEntry
-              error={errors.password}
-            />
-
-            <Input
-              label="Confirm Password"
-              value={formData.confirmPassword}
-              onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
-              placeholder="Confirm your password"
-              secureTextEntry
-              error={errors.confirmPassword}
-            />
-
-            {error && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
-              </View>
-            )}
-
-            <Button
-              title="Sign Up"
-              onPress={handleRegister}
-              loading={isLoading}
-              fullWidth
-              style={styles.button}
-            />
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Already have an account? </Text>
-              <Text
-                style={styles.linkText}
-                onPress={() => navigation.navigate('Login')}
-              >
-                Sign In
-              </Text>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Logo and Branding */}
+          <Animated.View 
+            style={[
+              styles.brandingContainer,
+              {
+                opacity: fadeAnim,
+                transform: [{ scale: logoScale }],
+              },
+            ]}
+          >
+            <View style={styles.logoCircle}>
+              <MaterialCommunityIcons name="lungs" size={40} color={colors.primary} />
             </View>
-          </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <Text style={styles.appName}>SmokeLess AI</Text>
+          </Animated.View>
+
+          {/* Registration Card */}
+          <Animated.View 
+            style={[
+              styles.card,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
+          >
+            <Text style={styles.welcomeText}>Create Account</Text>
+            <Text style={styles.subtitle}>Start your smoke-free journey today</Text>
+
+            <View style={styles.form}>
+              <Input
+                label="Full Name"
+                value={formData.name}
+                onChangeText={(text) => setFormData({ ...formData, name: text })}
+                placeholder="Enter your full name"
+                autoCapitalize="words"
+                error={errors.name}
+                leftIcon="account-outline"
+              />
+
+              <Input
+                label="Email Address"
+                value={formData.email}
+                onChangeText={(text) => setFormData({ ...formData, email: text })}
+                placeholder="you@example.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                error={errors.email}
+                leftIcon="email-outline"
+              />
+
+              <Input
+                label="Password"
+                value={formData.password}
+                onChangeText={(text) => setFormData({ ...formData, password: text })}
+                placeholder="Create a password"
+                secureTextEntry={!showPassword}
+                error={errors.password}
+                leftIcon="lock-outline"
+                rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                onRightIconPress={() => setShowPassword(!showPassword)}
+              />
+
+              <Input
+                label="Confirm Password"
+                value={formData.confirmPassword}
+                onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
+                placeholder="Confirm your password"
+                secureTextEntry={!showConfirmPassword}
+                error={errors.confirmPassword}
+                leftIcon="lock-check-outline"
+                rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              />
+
+              {error && (
+                <View style={styles.errorContainer}>
+                  <MaterialCommunityIcons name="alert-circle" size={18} color={colors.danger} />
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              )}
+
+              <Button
+                title="Create Account"
+                onPress={handleRegister}
+                loading={isLoading}
+                fullWidth
+                size="lg"
+                style={styles.signUpButton}
+                gradient
+              />
+            </View>
+          </Animated.View>
+
+          {/* Footer */}
+          <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
+            <Text style={styles.footerText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.linkText}>Sign In</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -151,39 +229,86 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  gradientBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: height * 0.35,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+  },
+  keyboardView: {
+    flex: 1,
+  },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
-    paddingVertical: spacing.xl,
+    paddingTop: Platform.OS === 'ios' ? 50 : 30,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
   },
-  content: {
-    padding: spacing.lg,
-  },
-  header: {
-    marginBottom: spacing.xl,
+  brandingContainer: {
     alignItems: 'center',
+    marginBottom: spacing.lg,
   },
-  title: {
-    fontSize: typography.h1.fontSize,
-    fontWeight: typography.h1.fontWeight,
-    color: colors.text.primary,
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.xl,
     marginBottom: spacing.sm,
+  },
+  appName: {
+    fontSize: typography.h2.fontSize,
+    fontWeight: typography.h2.fontWeight,
+    color: colors.text.inverse,
+    letterSpacing: -0.5,
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xxl,
+    padding: spacing.xl,
+    ...shadows.xl,
+  },
+  welcomeText: {
+    fontSize: typography.h2.fontSize,
+    fontWeight: typography.h2.fontWeight,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
   },
   subtitle: {
     fontSize: typography.body.fontSize,
     color: colors.text.secondary,
-    textAlign: 'center',
+    marginBottom: spacing.xl,
   },
   form: {
     width: '100%',
   },
-  button: {
+  signUpButton: {
     marginTop: spacing.md,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    padding: spacing.md,
+    backgroundColor: colors.danger + '10',
+    borderRadius: borderRadius.md,
+    gap: spacing.sm,
+  },
+  errorText: {
+    color: colors.danger,
+    fontSize: typography.caption.fontSize,
+    flex: 1,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: spacing.lg,
+    marginTop: spacing.xl,
+    paddingBottom: spacing.lg,
   },
   footerText: {
     fontSize: typography.body.fontSize,
@@ -192,19 +317,8 @@ const styles = StyleSheet.create({
   linkText: {
     fontSize: typography.body.fontSize,
     color: colors.primary,
-    fontWeight: '600',
-  },
-  errorContainer: {
-    marginBottom: spacing.md,
-    padding: spacing.sm,
-    backgroundColor: colors.danger + '10',
-    borderRadius: 8,
-  },
-  errorText: {
-    color: colors.danger,
-    fontSize: typography.caption.fontSize,
+    fontWeight: '700',
   },
 });
 
 export default RegisterScreen;
-

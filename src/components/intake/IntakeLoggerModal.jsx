@@ -1,5 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Platform, TextInput } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  Platform, 
+  TextInput,
+  TouchableOpacity,
+  Animated,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 // Helper function to trigger haptics only on native
@@ -13,10 +24,10 @@ const triggerHaptic = (type = 'impact') => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
 };
+
 import Modal from '../common/Modal';
 import Button from '../common/Button';
-import Input from '../common/Input';
-import { colors, spacing, borderRadius, typography } from '../../utils/theme';
+import { colors, spacing, borderRadius, typography, shadows } from '../../utils/theme';
 import { INTAKE_INTENSITY, INTAKE_CONTEXT } from '../../utils/constants';
 import { formatDateTime } from '../../utils/helpers';
 
@@ -26,6 +37,23 @@ const IntakeLoggerModal = ({ visible, onClose, onSubmit }) => {
   const [context, setContext] = useState(INTAKE_CONTEXT.OTHER);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const animatePuffChange = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1.2,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 4,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
 
   const handleSubmit = async () => {
     triggerHaptic('impact');
@@ -54,131 +82,188 @@ const IntakeLoggerModal = ({ visible, onClose, onSubmit }) => {
   };
 
   const intensityOptions = [
-    { label: 'Low', value: INTAKE_INTENSITY.LOW },
-    { label: 'Medium', value: INTAKE_INTENSITY.MEDIUM },
-    { label: 'High', value: INTAKE_INTENSITY.HIGH },
+    { label: 'Low', value: INTAKE_INTENSITY.LOW, color: colors.success, icon: 'leaf' },
+    { label: 'Medium', value: INTAKE_INTENSITY.MEDIUM, color: colors.warning, icon: 'fire' },
+    { label: 'High', value: INTAKE_INTENSITY.HIGH, color: colors.danger, icon: 'fire-alert' },
   ];
 
   const contextOptions = [
-    { label: 'Stress', value: INTAKE_CONTEXT.STRESS },
-    { label: 'Social', value: INTAKE_CONTEXT.SOCIAL },
-    { label: 'Break', value: INTAKE_CONTEXT.BREAK },
-    { label: 'Boredom', value: INTAKE_CONTEXT.BOREDOM },
-    { label: 'After Meal', value: INTAKE_CONTEXT.AFTER_MEAL },
-    { label: 'Morning', value: INTAKE_CONTEXT.MORNING },
-    { label: 'Other', value: INTAKE_CONTEXT.OTHER },
+    { label: 'Stress', value: INTAKE_CONTEXT.STRESS, icon: 'lightning-bolt' },
+    { label: 'Social', value: INTAKE_CONTEXT.SOCIAL, icon: 'account-group' },
+    { label: 'Break', value: INTAKE_CONTEXT.BREAK, icon: 'coffee' },
+    { label: 'Boredom', value: INTAKE_CONTEXT.BOREDOM, icon: 'clock-outline' },
+    { label: 'After Meal', value: INTAKE_CONTEXT.AFTER_MEAL, icon: 'food' },
+    { label: 'Morning', value: INTAKE_CONTEXT.MORNING, icon: 'weather-sunny' },
+    { label: 'Other', value: INTAKE_CONTEXT.OTHER, icon: 'dots-horizontal' },
   ];
 
   return (
     <Modal visible={visible} onClose={onClose} title="Log Intake">
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
-          <Text style={styles.timestamp}>{formatDateTime(new Date())}</Text>
+          {/* Timestamp */}
+          <View style={styles.timestampContainer}>
+            <MaterialCommunityIcons name="clock-outline" size={16} color={colors.neutral} />
+            <Text style={styles.timestamp}>{formatDateTime(new Date())}</Text>
+          </View>
 
+          {/* Puff Count Section */}
           <View style={styles.section}>
-            <Text style={styles.label}>Puff Count</Text>
+            <Text style={styles.sectionTitle}>How many puffs?</Text>
             <View style={styles.puffCountContainer}>
-              <Button
-                title="-"
+              <TouchableOpacity
+                style={[styles.countButton, puffCount <= 1 && styles.countButtonDisabled]}
                 onPress={() => {
                   if (puffCount > 1) {
                     triggerHaptic('light');
+                    animatePuffChange();
                     setPuffCount(puffCount - 1);
                   }
                 }}
-                variant="secondary"
-                size="sm"
-                style={styles.countButton}
                 disabled={puffCount <= 1}
-              />
-              <TextInput
-                style={styles.puffCountInput}
-                value={String(puffCount)}
-                onChangeText={(text) => {
-                  const num = parseInt(text) || 1;
-                  if (num >= 1 && num <= 100) {
-                    setPuffCount(num);
-                  }
-                }}
-                keyboardType="number-pad"
-                textAlign="center"
-              />
-              <Button
-                title="+"
+              >
+                <MaterialCommunityIcons 
+                  name="minus" 
+                  size={24} 
+                  color={puffCount <= 1 ? colors.neutralLight : colors.primary} 
+                />
+              </TouchableOpacity>
+              
+              <Animated.View style={[styles.puffCountDisplay, { transform: [{ scale: scaleAnim }] }]}>
+                <TextInput
+                  style={styles.puffCountInput}
+                  value={String(puffCount)}
+                  onChangeText={(text) => {
+                    const num = parseInt(text) || 1;
+                    if (num >= 1 && num <= 100) {
+                      setPuffCount(num);
+                    }
+                  }}
+                  keyboardType="number-pad"
+                  textAlign="center"
+                />
+                <Text style={styles.puffCountLabel}>puffs</Text>
+              </Animated.View>
+              
+              <TouchableOpacity
+                style={[styles.countButton, puffCount >= 100 && styles.countButtonDisabled]}
                 onPress={() => {
                   if (puffCount < 100) {
                     triggerHaptic('light');
+                    animatePuffChange();
                     setPuffCount(puffCount + 1);
                   }
                 }}
-                variant="secondary"
-                size="sm"
-                style={styles.countButton}
                 disabled={puffCount >= 100}
-              />
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.label}>Intensity</Text>
-            <View style={styles.segmentedControl}>
-              {intensityOptions.map((option) => (
-                <Button
-                  key={option.value}
-                  title={option.label}
-                  onPress={() => {
-                    triggerHaptic('light');
-                    setIntensity(option.value);
-                  }}
-                  variant={intensity === option.value ? 'primary' : 'secondary'}
-                  size="sm"
-                  style={styles.segmentButton}
+              >
+                <MaterialCommunityIcons 
+                  name="plus" 
+                  size={24} 
+                  color={puffCount >= 100 ? colors.neutralLight : colors.primary} 
                 />
-              ))}
+              </TouchableOpacity>
             </View>
           </View>
 
+          {/* Intensity Section */}
           <View style={styles.section}>
-            <Text style={styles.label}>Context</Text>
+            <Text style={styles.sectionTitle}>Intensity</Text>
+            <View style={styles.intensityContainer}>
+              {intensityOptions.map((option) => {
+                const isSelected = intensity === option.value;
+                return (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[
+                      styles.intensityOption,
+                      isSelected && { backgroundColor: option.color + '15', borderColor: option.color },
+                    ]}
+                    onPress={() => {
+                      triggerHaptic('light');
+                      setIntensity(option.value);
+                    }}
+                  >
+                    <MaterialCommunityIcons 
+                      name={option.icon} 
+                      size={20} 
+                      color={isSelected ? option.color : colors.neutral} 
+                    />
+                    <Text style={[
+                      styles.intensityText,
+                      isSelected && { color: option.color, fontWeight: '600' }
+                    ]}>
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Context Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>What triggered this?</Text>
             <View style={styles.contextGrid}>
-              {contextOptions.map((option) => (
-                <Button
-                  key={option.value}
-                  title={option.label}
-                  onPress={() => {
-                    triggerHaptic('light');
-                    setContext(option.value);
-                  }}
-                  variant={context === option.value ? 'primary' : 'secondary'}
-                  size="sm"
-                  style={styles.contextButton}
-                />
-              ))}
+              {contextOptions.map((option) => {
+                const isSelected = context === option.value;
+                return (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[
+                      styles.contextOption,
+                      isSelected && styles.contextOptionSelected,
+                    ]}
+                    onPress={() => {
+                      triggerHaptic('light');
+                      setContext(option.value);
+                    }}
+                  >
+                    <MaterialCommunityIcons 
+                      name={option.icon} 
+                      size={18} 
+                      color={isSelected ? colors.primary : colors.neutral} 
+                    />
+                    <Text style={[
+                      styles.contextText,
+                      isSelected && styles.contextTextSelected,
+                    ]}>
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
 
+          {/* Notes Section */}
           <View style={styles.section}>
-            <Input
-              label="Notes (Optional)"
+            <Text style={styles.sectionTitle}>Notes (optional)</Text>
+            <TextInput
+              style={styles.notesInput}
               value={notes}
               onChangeText={setNotes}
-              placeholder="Add any additional notes..."
+              placeholder="How are you feeling? Any triggers?"
+              placeholderTextColor={colors.text.muted}
               multiline
               numberOfLines={3}
+              textAlignVertical="top"
             />
           </View>
 
+          {/* Action Buttons */}
           <View style={styles.buttonContainer}>
             <Button
               title="Cancel"
               onPress={onClose}
-              variant="secondary"
+              variant="ghost"
               style={styles.cancelButton}
             />
             <Button
               title="Log Intake"
               onPress={handleSubmit}
               loading={isSubmitting}
+              gradient
+              leftIcon="check"
               style={styles.submitButton}
             />
           </View>
@@ -195,57 +280,122 @@ const styles = StyleSheet.create({
   container: {
     paddingBottom: spacing.lg,
   },
+  timestampContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.xl,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.surfaceHover,
+    borderRadius: borderRadius.md,
+  },
   timestamp: {
     fontSize: typography.caption.fontSize,
     color: colors.text.secondary,
-    textAlign: 'center',
-    marginBottom: spacing.lg,
   },
   section: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
-  label: {
+  sectionTitle: {
     fontSize: typography.body.fontSize,
     fontWeight: '600',
     color: colors.text.primary,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   puffCountContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    justifyContent: 'center',
+    gap: spacing.lg,
   },
   countButton: {
-    width: 44,
-    minHeight: 44,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.primary + '10',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.sm,
+  },
+  countButtonDisabled: {
+    backgroundColor: colors.surfaceHover,
+    ...shadows.none,
+  },
+  puffCountDisplay: {
+    alignItems: 'center',
+    minWidth: 100,
   },
   puffCountInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    fontSize: typography.h3.fontSize,
-    fontWeight: '600',
+    fontSize: typography.stat.fontSize,
+    fontWeight: typography.stat.fontWeight,
     color: colors.text.primary,
+    textAlign: 'center',
+    width: 100,
+  },
+  puffCountLabel: {
+    fontSize: typography.caption.fontSize,
+    color: colors.text.secondary,
+    marginTop: -spacing.xs,
+  },
+  intensityContainer: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  intensityOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1.5,
+    borderColor: colors.border,
     backgroundColor: colors.surface,
+  },
+  intensityText: {
+    fontSize: typography.caption.fontSize,
+    color: colors.text.secondary,
   },
   contextGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  contextButton: {
-    flex: 1,
-    minWidth: '30%',
-  },
-  segmentedControl: {
+  contextOption: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.round,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
-  segmentButton: {
-    flex: 1,
+  contextOptionSelected: {
+    backgroundColor: colors.primary + '10',
+    borderColor: colors.primary,
+  },
+  contextText: {
+    fontSize: typography.caption.fontSize,
+    color: colors.text.secondary,
+  },
+  contextTextSelected: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  notesInput: {
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    fontSize: typography.body.fontSize,
+    color: colors.text.primary,
+    backgroundColor: colors.surface,
+    minHeight: 100,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -261,4 +411,3 @@ const styles = StyleSheet.create({
 });
 
 export default IntakeLoggerModal;
-

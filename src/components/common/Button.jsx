@@ -1,6 +1,8 @@
 import React from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { colors, spacing, borderRadius, typography } from '../../utils/theme';
+import { TouchableOpacity, Text, ActivityIndicator, StyleSheet, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { colors, spacing, borderRadius, typography, shadows } from '../../utils/theme';
 
 const Button = ({
   title,
@@ -12,19 +14,32 @@ const Button = ({
   fullWidth = false,
   style,
   textStyle,
+  leftIcon,
+  rightIcon,
+  gradient = false,
 }) => {
   const getVariantStyles = () => {
     switch (variant) {
       case 'primary':
         return {
-          backgroundColor: colors.primary,
+          backgroundColor: gradient ? 'transparent' : colors.primary,
           borderColor: colors.primary,
         };
       case 'secondary':
         return {
+          backgroundColor: colors.primary + '10',
+          borderColor: 'transparent',
+        };
+      case 'outline':
+        return {
           backgroundColor: 'transparent',
-          borderColor: colors.primary,
-          borderWidth: 1,
+          borderColor: colors.border,
+          borderWidth: 1.5,
+        };
+      case 'ghost':
+        return {
+          backgroundColor: 'transparent',
+          borderColor: 'transparent',
         };
       case 'danger':
         return {
@@ -51,60 +66,134 @@ const Button = ({
           paddingVertical: spacing.sm,
           paddingHorizontal: spacing.md,
           fontSize: typography.caption.fontSize,
+          iconSize: 16,
+          minHeight: 36,
         };
       case 'lg':
         return {
-          paddingVertical: spacing.md + 4,
-          paddingHorizontal: spacing.lg,
+          paddingVertical: spacing.md + 2,
+          paddingHorizontal: spacing.xl,
           fontSize: typography.body.fontSize,
+          iconSize: 22,
+          minHeight: 56,
         };
       default:
         return {
           paddingVertical: spacing.md,
           paddingHorizontal: spacing.lg,
           fontSize: typography.body.fontSize,
+          iconSize: 20,
+          minHeight: 48,
         };
     }
   };
 
   const getTextColor = () => {
-    if (variant === 'secondary') {
-      return colors.primary;
-    }
+    if (variant === 'secondary') return colors.primary;
+    if (variant === 'outline') return colors.text.primary;
+    if (variant === 'ghost') return colors.primary;
     return '#FFFFFF';
   };
+
+  const sizeStyles = getSizeStyles();
+  const variantStyles = getVariantStyles();
+  const textColor = getTextColor();
+
+  const buttonContent = (
+    <View style={styles.contentContainer}>
+      {loading ? (
+        <ActivityIndicator color={textColor} size="small" />
+      ) : (
+        <>
+          {leftIcon && (
+            <MaterialCommunityIcons
+              name={leftIcon}
+              size={sizeStyles.iconSize}
+              color={textColor}
+              style={styles.leftIcon}
+            />
+          )}
+          <Text
+            style={[
+              styles.text,
+              { color: textColor, fontSize: sizeStyles.fontSize },
+              textStyle,
+            ]}
+          >
+            {title}
+          </Text>
+          {rightIcon && (
+            <MaterialCommunityIcons
+              name={rightIcon}
+              size={sizeStyles.iconSize}
+              color={textColor}
+              style={styles.rightIcon}
+            />
+          )}
+        </>
+      )}
+    </View>
+  );
+
+  if (gradient && variant === 'primary') {
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={disabled || loading}
+        activeOpacity={0.85}
+        style={[fullWidth && styles.fullWidth, style]}
+      >
+        <LinearGradient
+          colors={['#6366F1', '#8B5CF6']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[
+            styles.button,
+            {
+              paddingVertical: sizeStyles.paddingVertical,
+              paddingHorizontal: sizeStyles.paddingHorizontal,
+              minHeight: sizeStyles.minHeight,
+            },
+            (disabled || loading) && styles.disabled,
+            shadows.primary,
+          ]}
+        >
+          {buttonContent}
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        getVariantStyles(),
-        getSizeStyles(),
+        variantStyles,
+        {
+          paddingVertical: sizeStyles.paddingVertical,
+          paddingHorizontal: sizeStyles.paddingHorizontal,
+          minHeight: sizeStyles.minHeight,
+        },
         fullWidth && styles.fullWidth,
         (disabled || loading) && styles.disabled,
+        variant === 'primary' && !gradient && shadows.sm,
         style,
       ]}
       onPress={onPress}
       disabled={disabled || loading}
       activeOpacity={0.7}
     >
-      {loading ? (
-        <ActivityIndicator color={getTextColor()} />
-      ) : (
-        <Text style={[styles.text, { color: getTextColor() }, textStyle]}>
-          {title}
-        </Text>
-      )}
+      {buttonContent}
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 44,
+    overflow: 'hidden',
   },
   fullWidth: {
     width: '100%',
@@ -112,10 +201,21 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.5,
   },
+  contentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   text: {
     fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  leftIcon: {
+    marginRight: spacing.sm,
+  },
+  rightIcon: {
+    marginLeft: spacing.sm,
   },
 });
 
 export default Button;
-

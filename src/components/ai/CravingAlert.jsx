@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Card from '../common/Card';
 import Button from '../common/Button';
-import { colors, spacing, typography } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
 
 const CravingAlert = ({ prediction, strategies, onResist, onDismiss }) => {
   if (!prediction) {
@@ -11,14 +12,16 @@ const CravingAlert = ({ prediction, strategies, onResist, onDismiss }) => {
   }
 
   return (
-    <Card style={styles.container}>
-      <View style={styles.header}>
-        <MaterialCommunityIcons
-          name="alert-circle"
-          size={24}
-          color={colors.warning}
-        />
-        <Text style={styles.title}>Craving Prediction</Text>
+    <Card style={styles.container} variant="elevated">
+      {/* Alert Header */}
+      <View style={styles.headerRow}>
+        <View style={styles.alertBadge}>
+          <MaterialCommunityIcons name="alert" size={16} color={colors.warning} />
+          <Text style={styles.alertBadgeText}>Craving Alert</Text>
+        </View>
+        <TouchableOpacity onPress={onDismiss} style={styles.dismissButton}>
+          <MaterialCommunityIcons name="close" size={20} color={colors.neutral} />
+        </TouchableOpacity>
       </View>
 
       <Text style={styles.message}>
@@ -26,9 +29,10 @@ const CravingAlert = ({ prediction, strategies, onResist, onDismiss }) => {
       </Text>
 
       {prediction.timeUntil && (
-        <Text style={styles.timeText}>
-          Estimated time: {prediction.timeUntil}
-        </Text>
+        <View style={styles.timeContainer}>
+          <MaterialCommunityIcons name="clock-outline" size={16} color={colors.warning} />
+          <Text style={styles.timeText}>Estimated: {prediction.timeUntil}</Text>
+        </View>
       )}
 
       {strategies && strategies.length > 0 && (
@@ -36,11 +40,9 @@ const CravingAlert = ({ prediction, strategies, onResist, onDismiss }) => {
           <Text style={styles.strategiesTitle}>Try these strategies:</Text>
           {strategies.slice(0, 3).map((strategy, index) => (
             <View key={index} style={styles.strategyItem}>
-              <MaterialCommunityIcons
-                name="check-circle"
-                size={16}
-                color={colors.success}
-              />
+              <View style={styles.strategyNumber}>
+                <Text style={styles.strategyNumberText}>{index + 1}</Text>
+              </View>
               <Text style={styles.strategyText}>{strategy}</Text>
             </View>
           ))}
@@ -49,18 +51,12 @@ const CravingAlert = ({ prediction, strategies, onResist, onDismiss }) => {
 
       <View style={styles.actions}>
         <Button
-          title="I Resisted"
+          title="I Resisted! 💪"
           onPress={onResist}
           variant="success"
-          size="sm"
-          style={styles.actionButton}
-        />
-        <Button
-          title="Dismiss"
-          onPress={onDismiss}
-          variant="secondary"
-          size="sm"
-          style={styles.actionButton}
+          size="md"
+          fullWidth
+          leftIcon="check-circle"
         />
       </View>
     </Card>
@@ -69,65 +65,91 @@ const CravingAlert = ({ prediction, strategies, onResist, onDismiss }) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.md,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.warning,
+    marginBottom: spacing.lg,
+    padding: spacing.lg,
+    borderWidth: 1.5,
+    borderColor: colors.warning + '30',
+    backgroundColor: colors.warning + '05',
   },
-  header: {
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: spacing.md,
   },
-  title: {
-    fontSize: typography.h3.fontSize,
-    fontWeight: typography.h3.fontWeight,
-    color: colors.text.primary,
-    marginLeft: spacing.sm,
+  alertBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.warning + '15',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.round,
+    gap: spacing.xs,
+  },
+  alertBadgeText: {
+    fontSize: typography.small.fontSize,
+    fontWeight: '600',
+    color: colors.warning,
+  },
+  dismissButton: {
+    padding: spacing.xs,
   },
   message: {
     fontSize: typography.body.fontSize,
-    color: colors.text.secondary,
-    marginBottom: spacing.sm,
-    lineHeight: 20,
+    color: colors.text.primary,
+    marginBottom: spacing.md,
+    lineHeight: 22,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.lg,
   },
   timeText: {
     fontSize: typography.caption.fontSize,
     color: colors.warning,
     fontWeight: '600',
-    marginBottom: spacing.md,
   },
   strategiesContainer: {
-    marginTop: spacing.md,
-    padding: spacing.md,
     backgroundColor: colors.surface,
-    borderRadius: 8,
-    marginBottom: spacing.md,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
   },
   strategiesTitle: {
-    fontSize: typography.caption.fontSize,
-    fontWeight: '600',
+    fontSize: typography.captionMedium.fontSize,
+    fontWeight: typography.captionMedium.fontWeight,
     color: colors.text.primary,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   strategyItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  strategyNumber: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.success + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+  },
+  strategyNumberText: {
+    fontSize: typography.small.fontSize,
+    fontWeight: '600',
+    color: colors.success,
   },
   strategyText: {
     fontSize: typography.caption.fontSize,
     color: colors.text.secondary,
-    marginLeft: spacing.xs,
     flex: 1,
   },
   actions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  actionButton: {
-    flex: 1,
+    marginTop: spacing.xs,
   },
 });
 
 export default CravingAlert;
-
