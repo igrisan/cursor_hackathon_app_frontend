@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -9,15 +9,30 @@ const App = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Global error handler
-    const errorHandler = (e) => {
-      console.error('App Error:', e);
-      setError(e.message || 'Unknown error');
-    };
-    
-    if (typeof window !== 'undefined') {
-      window.addEventListener('error', errorHandler);
-      return () => window.removeEventListener('error', errorHandler);
+    // Platform-specific global error handling
+    if (Platform.OS === 'web') {
+      // Web: use window error event
+      const webHandler = (e) => {
+        console.error('App Error:', e);
+        setError(e.message || 'Unknown error');
+      };
+      window.addEventListener('error', webHandler);
+      return () => window.removeEventListener('error', webHandler);
+    } else {
+      // Native: use React Native's ErrorUtils
+      const originalHandler = global.ErrorUtils?.getGlobalHandler?.();
+      const nativeHandler = (error, isFatal) => {
+        console.error('App Error:', error, isFatal ? '(Fatal)' : '');
+        setError(error?.message || 'Unknown error');
+        // Preserve original handler for crash reporting
+        originalHandler?.(error, isFatal);
+      };
+      global.ErrorUtils?.setGlobalHandler?.(nativeHandler);
+      return () => {
+        if (originalHandler) {
+          global.ErrorUtils?.setGlobalHandler?.(originalHandler);
+        }
+      };
     }
   }, []);
 
@@ -68,4 +83,3 @@ const styles = StyleSheet.create({
 });
 
 export default App;
-
