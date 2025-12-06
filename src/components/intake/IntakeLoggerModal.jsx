@@ -33,6 +33,7 @@ import { formatDateTime } from '../../utils/helpers';
 
 const IntakeLoggerModal = ({ visible, onClose, onSubmit }) => {
   const [puffCount, setPuffCount] = useState(1);
+  const [puffCountInput, setPuffCountInput] = useState('1'); // Separate state for text input
   const [intensity, setIntensity] = useState(INTAKE_INTENSITY.MEDIUM);
   const [context, setContext] = useState(INTAKE_CONTEXT.OTHER);
   const [notes, setNotes] = useState('');
@@ -74,6 +75,7 @@ const IntakeLoggerModal = ({ visible, onClose, onSubmit }) => {
       triggerHaptic('success');
       // Reset form
       setPuffCount(1);
+      setPuffCountInput('1');
       setIntensity(INTAKE_INTENSITY.MEDIUM);
       setContext(INTAKE_CONTEXT.OTHER);
       setNotes('');
@@ -117,7 +119,9 @@ const IntakeLoggerModal = ({ visible, onClose, onSubmit }) => {
                   if (puffCount > 1) {
                     triggerHaptic('light');
                     animatePuffChange();
-                    setPuffCount(puffCount - 1);
+                    const newValue = puffCount - 1;
+                    setPuffCount(newValue);
+                    setPuffCountInput(String(newValue));
                   }
                 }}
                 disabled={puffCount <= 1}
@@ -132,15 +136,25 @@ const IntakeLoggerModal = ({ visible, onClose, onSubmit }) => {
               <Animated.View style={[styles.puffCountDisplay, { transform: [{ scale: scaleAnim }] }]}>
                 <TextInput
                   style={styles.puffCountInput}
-                  value={String(puffCount)}
+                  value={puffCountInput}
                   onChangeText={(text) => {
-                    const num = parseInt(text) || 1;
-                    if (num >= 1 && num <= 100) {
-                      setPuffCount(num);
+                    // Allow user to type freely (only digits)
+                    const cleanedText = text.replace(/[^0-9]/g, '');
+                    setPuffCountInput(cleanedText);
+                  }}
+                  onBlur={() => {
+                    // Validate and clamp on blur
+                    const num = parseInt(puffCountInput) || 1;
+                    const clamped = Math.min(100, Math.max(1, num));
+                    setPuffCount(clamped);
+                    setPuffCountInput(String(clamped));
+                    if (num !== puffCount) {
+                      animatePuffChange();
                     }
                   }}
                   keyboardType="number-pad"
                   textAlign="center"
+                  maxLength={3}
                 />
                 <Text style={styles.puffCountLabel}>puffs</Text>
               </Animated.View>
@@ -151,7 +165,9 @@ const IntakeLoggerModal = ({ visible, onClose, onSubmit }) => {
                   if (puffCount < 100) {
                     triggerHaptic('light');
                     animatePuffChange();
-                    setPuffCount(puffCount + 1);
+                    const newValue = puffCount + 1;
+                    setPuffCount(newValue);
+                    setPuffCountInput(String(newValue));
                   }
                 }}
                 disabled={puffCount >= 100}
