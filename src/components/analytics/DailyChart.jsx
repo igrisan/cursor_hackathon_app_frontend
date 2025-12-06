@@ -58,7 +58,8 @@ const DailyChart = ({ data }) => {
           <View style={styles.bars}>
             {data.map((item, index) => {
               const height = ((item.totalPuffs || 0) / maxValue) * 140;
-              const isToday = index === data.length - 1;
+              // Data is reversed (newest first), so today is at index 0
+              const isToday = index === 0;
               return (
                 <View key={index} style={styles.barWrapper}>
                   <View style={styles.barContainer}>

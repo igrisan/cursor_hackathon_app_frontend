@@ -148,7 +148,8 @@ const IntakeLoggerModal = ({ visible, onClose, onSubmit }) => {
                     const clamped = Math.min(100, Math.max(1, num));
                     setPuffCount(clamped);
                     setPuffCountInput(String(clamped));
-                    if (num !== puffCount) {
+                    // Animate if the clamped value differs from current state
+                    if (clamped !== puffCount) {
                       animatePuffChange();
                     }
                   }}
