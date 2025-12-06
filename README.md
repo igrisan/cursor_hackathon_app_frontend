@@ -1,0 +1,1 @@
+# cursor_hackatho_app_frontend
